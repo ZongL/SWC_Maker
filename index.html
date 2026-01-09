@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<body>
+<h2>Excel → ARXML 转换器</h2>
+<form id="upload">
+  <input type="file" name="file" accept=".xlsx" required>
+  <button type="submit">转换并下载</button>
+</form>
+<script>
+document.getElementById('upload').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const form = new FormData(e.target);
+  const res = await fetch('/api/index', {method:'POST', body: form});
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'result.arxml'; a.click();
+});
+</script>
+</body>
+</html>

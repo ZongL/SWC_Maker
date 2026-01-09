@@ -1,0 +1,2 @@
+# 忽略本地 autosar 源码目录（wheel 已放入 packages/）
+/autosar
