@@ -1,6 +1,6 @@
 from flask import Flask, request, send_file
 import os, tempfile
-from swc_generator import convert_xlsx_to_arxml
+from api.swc_generator import convert_xlsx_to_arxml
 
 app = Flask(__name__)
 
