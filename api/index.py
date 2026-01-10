@@ -1,39 +1,50 @@
-from http.server import BaseHTTPRequestHandler
-import cgi, io, os, tempfile
+from flask import Flask, request, send_file
+import os, tempfile
 from swc_generator import convert_xlsx_to_arxml
 
-class handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        form = cgi.FieldStorage(fp=self.rfile, headers=self.headers,
-                                environ={'REQUEST_METHOD':'POST'})
-        file_item = form['file']
-        if not file_item.file:
-            self.send_error(400, 'No file')
-            return
+app = Flask(__name__)
 
-        # 保存上传的临时 Excel
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
-            tmp.write(file_item.file.read())
-            tmp_path = tmp.name
+# project root (parent of api/)
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-        # 调用你的转换脚本
-        arxml_path = tmp_path.replace('.xlsx', '.arxml')
 
+@app.route('/', methods=['GET'])
+def serve_index():
+    index_path = os.path.join(ROOT_DIR, 'index.html')
+    if os.path.exists(index_path):
+        return send_file(index_path)
+    return 'index.html not found', 404
+
+
+@app.route('/api/index', methods=['POST'])
+def handle_upload():
+    if 'file' not in request.files:
+        return 'No file uploaded', 400
+    uploaded = request.files['file']
+    if uploaded.filename == '':
+        return 'No file selected', 400
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
+        uploaded.save(tmp.name)
+        tmp_path = tmp.name
+
+    arxml_path = tmp_path.replace('.xlsx', '.arxml')
+    try:
         convert_xlsx_to_arxml(tmp_path, arxml_path)
+        if not os.path.exists(arxml_path):
+            return 'Conversion failed', 500
+        return send_file(arxml_path, mimetype='application/xml', download_name='result.arxml', as_attachment=True)
+    except Exception as e:
+        return f'Internal server error: {e}', 500
+    finally:
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            if os.path.exists(arxml_path):
+                os.remove(arxml_path)
+        except Exception:
+            pass
 
-        # 把 ARXML 读回并返回
-        with open(arxml_path, 'rb') as f:
-            data = f.read()
-        os.remove(tmp_path)
-        os.remove(arxml_path)
 
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/xml')
-        self.send_header('Content-Disposition', 'attachment; filename="result.arxml"')
-        self.end_headers()
-        self.wfile.write(data)
-
-# 文件尾部新增
 if __name__ == '__main__':
-    from http.server import HTTPServer
-    HTTPServer(('0.0.0.0', 8000), handler).serve_forever()
+    app.run(host='0.0.0.0', port=8000)

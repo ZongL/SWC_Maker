@@ -4,3 +4,4 @@ tomli >= 1.1.0 ; python_version < "3.11"
 cfile >= 0.4.0
 pandas
 ./packages/autosar-0.5.5-py3-none-any.whl
+Flask
