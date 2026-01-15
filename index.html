@@ -1,21 +1,251 @@
 <!doctype html>
-<html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>AUTOSAR SWC 生成器</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+    body {
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: #f7f9fc;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      width: 90%;
+      max-width: 520px;
+      padding: 48px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.08);
+      text-align: center;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+    .sub {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    #drop {
+      border: 2px dashed #c2c8d0;
+      border-radius: 8px;
+      padding: 48px 24px;
+      transition: all .2s;
+      cursor: pointer;
+      background: #fafbfc;
+    }
+    #drop:hover {
+      border-color: #409eff;
+      background: #f5f9ff;
+    }
+    #drop.dragover {
+      border-color: #409eff;
+      background: #f0f8ff;
+      transform: scale(1.02);
+    }
+    #fileInput {
+      display: none;
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: #409eff;
+    }
+    .upload-text {
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .upload-text strong {
+      color: #409eff;
+    }
+    .tip {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #999;
+    }
+    .file-info {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f0f8ff;
+      border-radius: 6px;
+      color: #409eff;
+      font-size: 14px;
+      display: none;
+    }
+    .btn {
+      margin-top: 24px;
+      background: #409eff;
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s;
+      width: 100%;
+    }
+    .btn:hover {
+      background: #66b1ff;
+    }
+    .btn:active {
+      background: #3a8ee6;
+    }
+    .btn:disabled {
+      background: #c0c4cc;
+      cursor: not-allowed;
+    }
+    .loading {
+      display: none;
+      margin-top: 16px;
+      color: #409eff;
+      font-size: 14px;
+    }
+    .loading.show {
+      display: block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #409eff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: 8px;
+    }
+  </style>
+</head>
 <body>
-<h2>Excel → ARXML 转换器</h2>
-<form id="upload">
-  <input type="file" name="file" accept=".xlsx" required>
-  <button type="submit">转换并下载</button>
-</form>
-<script>
-document.getElementById('upload').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const form = new FormData(e.target);
-  const res = await fetch('/api/index', {method:'POST', body: form});
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'result.arxml'; a.click();
-});
-</script>
+  <div class="card">
+    <h1>AUTOSAR SWC 生成器</h1>
+    <p class="sub">上传 Excel 配置文件，自动生成符合 AUTOSAR 标准的 ARXML 文件</p>
+    
+    <form id="upload">
+      <div id="drop">
+        <input id="fileInput" name="file" type="file" accept=".xlsx,.xls" required />
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">将 Excel 文件拖到此处，或 <strong>点击上传</strong></div>
+        <div class="tip">支持 .xlsx / .xls 格式</div>
+      </div>
+      <div id="fileInfo" class="file-info"></div>
+      <button class="btn" type="submit">生成 ARXML 文件</button>
+    </form>
+    
+    <div id="loading" class="loading">
+      <span class="spinner"></span>正在生成 ARXML 文件...
+    </div>
+  </div>
+
+  <script>
+    const drop = document.getElementById('drop');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadForm = document.getElementById('upload');
+    const loadingEl = document.getElementById('loading');
+    const submitBtn = uploadForm.querySelector('.btn');
+
+    // 点击触发选择
+    drop.addEventListener('click', () => fileInput.click());
+
+    // 拖放高亮
+    ['dragenter', 'dragover'].forEach(evt =>
+      drop.addEventListener(evt, e => {
+        e.preventDefault();
+        drop.classList.add('dragover');
+      })
+    );
+
+    ['dragleave', 'drop'].forEach(evt =>
+      drop.addEventListener(evt, e => {
+        e.preventDefault();
+        drop.classList.remove('dragover');
+      })
+    );
+
+    // 拖放文件
+    drop.addEventListener('drop', e => {
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        fileInput.files = files;
+        showFileInfo(files[0]);
+      }
+    });
+
+    // 文件选择变化
+    fileInput.addEventListener('change', e => {
+      if (e.target.files[0]) {
+        showFileInfo(e.target.files[0]);
+      }
+    });
+
+    // 显示文件信息
+    function showFileInfo(file) {
+      fileInfo.textContent = `已选择: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+      fileInfo.style.display = 'block';
+    }
+
+    // 表单提交
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (!fileInput.files[0]) {
+        alert('请先选择文件');
+        return;
+      }
+
+      // 显示加载状态
+      submitBtn.disabled = true;
+      submitBtn.textContent = '生成中...';
+      loadingEl.classList.add('show');
+
+      try {
+        const formData = new FormData(e.target);
+        const res = await fetch('/api/index', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!res.ok) {
+          throw new Error(`服务器错误: ${res.status}`);
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'myswc_gen.arxml';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        // 成功提示
+        alert('✅ ARXML 文件生成成功！');
+      } catch (err) {
+        alert('❌ 生成失败: ' + err.message);
+        console.error(err);
+      } finally {
+        // 恢复状态
+        submitBtn.disabled = false;
+        submitBtn.textContent = '生成 ARXML 文件';
+        loadingEl.classList.remove('show');
+      }
+    });
+  </script>
 </body>
 </html>
