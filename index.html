@@ -38,6 +38,52 @@
       margin-bottom: 32px;
       line-height: 1.6;
     }
+    .description {
+      background: #f0f8ff;
+      border-left: 4px solid #409eff;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      text-align: left;
+      border-radius: 6px;
+    }
+    .description h3 {
+      font-size: 16px;
+      color: #333;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+    }
+    .description p {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.8;
+      margin: 0 0 10px 0;
+    }
+    .description p:last-child {
+      margin-bottom: 0;
+    }
+    .description .highlight {
+      color: #409eff;
+      font-weight: 500;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      color: #666;
+    }
+    .feature-item::before {
+      content: "✓";
+      color: #409eff;
+      font-weight: bold;
+      margin-right: 8px;
+      font-size: 16px;
+    }
     #drop {
       border: 2px dashed #c2c8d0;
       border-radius: 8px;
@@ -135,9 +181,23 @@
 <body>
   <div class="card">
     <h1>AUTOSAR SWC 生成器</h1>
-    <p class="sub">上传 Excel 配置文件，自动生成符合 AUTOSAR 标准的 ARXML 文件</p>
+    <p class="sub">Excel 配置文件一键转换为 AUTOSAR 标准 ARXML 文件</p>
     
-    <form id="upload">
+    <div class="description">
+      <h3>🎯 工具简介</h3>
+      <p>
+        本工具专为 <span class="highlight">AUTOSAR SWC 开发流程</span>设计，帮助工程师快速生成符合标准的软件组件描述文件（SWCD）。
+        只需按照模板填写 Excel 接口清单，即可自动生成 <span class="highlight">ARXML 文件</span>，无需深入了解 AUTOSAR 复杂的组件接口规范。
+      </p>
+      <div class="features">
+        <div class="feature-item">支持 SR/CS 接口</div>
+        <div class="feature-item">自动生成 Runnable</div>
+        <div class="feature-item">MATLAB 模型集成</div>
+        <div class="feature-item">符合 AUTOSAR 标准</div>
+      </div>
+    </div>
+    
+    <form id="upload"></form>
       <div id="drop">
         <input id="fileInput" name="file" type="file" accept=".xlsx,.xls" required />
         <div class="upload-icon">📄</div>
