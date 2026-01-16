@@ -281,6 +281,90 @@
       border-radius: 3px;
       font-size: 11px;
     }
+    .tips-card {
+      padding: 24px;
+      text-align: left;
+    }
+    .tips-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .tips-icon {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+    .tips-title {
+      font-size: 16px;
+      color: #333;
+      font-weight: 600;
+    }
+    .tips-content {
+      background: #fffbf0;
+      border-left: 4px solid #fa8c16;
+      padding: 20px 24px;
+      border-radius: 6px;
+    }
+    .tips-content p {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.8;
+      margin: 0 0 16px 0;
+    }
+    .tips-content p:last-child {
+      margin-bottom: 0;
+    }
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .code-block code {
+      color: #f8f8f2;
+    }
+    .code-comment {
+      color: #75715e;
+    }
+    .code-function {
+      color: #66d9ef;
+    }
+    .code-string {
+      color: #e6db74;
+    }
+    .steps {
+      margin-top: 16px;
+    }
+    .step-item {
+      display: flex;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+    .step-number {
+      background: #fa8c16;
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+    .step-text {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.8;
+      padding-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -405,6 +489,48 @@
         </table>
       </div>
     </div>
+
+    <div class="card tips-card">
+      <div class="tips-header">
+        <span class="tips-icon">💡</span>
+        <span class="tips-title">MATLAB Simulink 集成指南</span>
+      </div>
+      <div class="tips-content">
+        <p>生成 <strong>swc_result.arxml</strong> 文件后，您可以在 MATLAB 中导入并创建 Simulink 模型：</p>
+        
+        <div class="steps">
+          <div class="step-item">
+            <span class="step-number">1</span>
+            <span class="step-text">导入 ARXML 文件到 MATLAB 工作空间</span>
+          </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">% 导入 ARXML 文件</span><br>
+ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
+        </div>
+
+        <div class="steps">
+          <div class="step-item">
+            <span class="step-number">2</span>
+            <span class="step-text">根据 ARXML 创建 Simulink 组件模型</span>
+          </div>
+        </div>
+
+        <div class="code-block">
+<code><span class="code-comment">% 创建 Simulink 模型（将 swcname 替换为您的组件名称）</span><br>
+<span class="code-function">createComponentAsModel</span>(ar, <span class="code-string">'/ComponentTypes/swcname'</span>,
+    <span class="code-string">'ModelPeriodicRunnablesAs'</span>, <span class="code-string">'FunctionCallSubsystem'</span>);</code>
+        </div>
+
+        <div class="steps">
+          <div class="step-item">
+            <span class="step-number">3</span>
+            <span class="step-text">在生成的 Simulink 模型中设计内部逻辑，完成软件组件开发</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -484,7 +610,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'myswc_gen.arxml';
+        a.download = 'swc_result.arxml';
         a.click();
         URL.revokeObjectURL(url);
 
