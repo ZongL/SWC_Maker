@@ -5,8 +5,11 @@
 [build.environment]
   PYTHON_VERSION = "3.12"
 
+[functions.environment]
+  PYTHONPATH = ".netlify/python"
+
 [functions]
-  directory = "netlify/functions"
+  directory = "/netlify/functions"
 
 [[redirects]]
   from = "/api/*"
