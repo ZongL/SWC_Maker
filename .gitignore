@@ -3,3 +3,7 @@
 /api/__pycache__/
 *.pyc
 /.vscode/
+
+/node_modules/
+# Local Netlify folder
+.netlify
