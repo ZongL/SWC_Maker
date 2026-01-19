@@ -1,14 +1,12 @@
 [build]
   publish = "."
-  command = "pip install -r requirements.txt && pip install ./packages/autosar-0.5.5-py3-none-any.whl"
+  command = "pip install -r requirements.txt -t .netlify/python && pip install ./packages/autosar-0.5.5-py3-none-any.whl -t .netlify/python"
 
 [build.environment]
   PYTHON_VERSION = "3.12"
 
-[[functions]]
-  directory = "netlify/functions"
-
 [functions]
+  directory = "netlify/functions"
   python_runtime = "python3.12"
 
 [[redirects]]
