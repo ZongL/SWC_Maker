@@ -1,0 +1,22 @@
+[build]
+  publish = "."
+  command = "pip install -r requirements.txt && pip install ./packages/autosar-0.5.5-py3-none-any.whl"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
+[[functions]]
+  directory = "netlify/functions"
+
+[functions]
+  python_runtime = "python3.12"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/index"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
