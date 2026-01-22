@@ -181,6 +181,109 @@
       background: #c0c4cc;
       cursor: not-allowed;
     }
+    
+    /* 激活码相关样式 */
+    .activation-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .activation-modal.hidden {
+      display: none;
+    }
+    
+    .modal-content {
+      background: #fff;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    
+    .modal-title {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+    
+    .modal-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e4e7ed;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .modal-input:focus {
+      outline: none;
+      border-color: #409eff;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    
+    .modal-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .modal-btn-primary {
+      background: #409eff;
+      color: #fff;
+    }
+    
+    .modal-btn-primary:hover {
+      background: #66b1ff;
+    }
+    
+    .modal-btn-secondary {
+      background: #f5f7fa;
+      color: #606266;
+    }
+    
+    .modal-btn-secondary:hover {
+      background: #e4e7ed;
+    }
+    
+    .usage-info {
+      background: #f0f8ff;
+      border: 1px solid #409eff;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #409eff;
+    }
+    
+    .usage-info.hidden {
+      display: none;
+    }
+    
+    .usage-count {
+      font-weight: 600;
+    }
     .loading {
       display: none;
       margin-top: 16px;
@@ -400,6 +503,11 @@
         </div>
       </div>
       
+      <!-- 激活码使用情况显示 -->
+      <div id="usageInfo" class="usage-info hidden">
+        <span>剩余使用次数: <span id="remainingCount" class="usage-count">--</span></span>
+      </div>
+      
       <form id="upload">
         <div id="drop">
           <input id="fileInput" name="file" type="file" accept=".xlsx,.xls" required />
@@ -546,7 +654,140 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
     </div>
   </div>
 
+  <!-- 激活码输入弹窗 -->
+  <div id="activationModal" class="activation-modal hidden">
+    <div class="modal-content">
+      <h3 class="modal-title">请输入激活码</h3>
+      <input 
+        type="text" 
+        id="activationCodeInput" 
+        class="modal-input" 
+        placeholder="请输入激活码"
+        maxlength="32"
+      />
+      <div class="modal-buttons">
+        <button class="modal-btn modal-btn-primary" onclick="verifyActivationCode()">确认</button>
+        <button class="modal-btn modal-btn-secondary" onclick="closeActivationModal()">取消</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // ========== 激活码管理 ==========
+    let currentActivationCode = null;
+    let remainingUses = 0;
+    
+    // 从localStorage获取激活码信息
+    function loadActivationInfo() {
+      const saved = localStorage.getItem('activationInfo');
+      if (saved) {
+        try {
+          const info = JSON.parse(saved);
+          currentActivationCode = info.code;
+          remainingUses = info.remaining_uses || 0;
+          updateUsageDisplay();
+        } catch (e) {
+          console.error('激活码信息解析失败:', e);
+        }
+      }
+    }
+    
+    // 保存激活码信息到localStorage
+    function saveActivationInfo(code, remaining) {
+      const info = {
+        code: code,
+        remaining_uses: remaining,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('activationInfo', JSON.stringify(info));
+    }
+    
+    // 更新使用次数显示
+    function updateUsageDisplay() {
+      const usageInfo = document.getElementById('usageInfo');
+      const remainingCount = document.getElementById('remainingCount');
+      
+      if (currentActivationCode && remainingUses > 0) {
+        remainingCount.textContent = remainingUses;
+        usageInfo.classList.remove('hidden');
+      } else {
+        usageInfo.classList.add('hidden');
+      }
+      
+      // 如果次数用完，禁用上传按钮
+      const submitBtn = document.querySelector('.btn[type="submit"]');
+      if (remainingUses <= 0) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = '使用次数已用完';
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '生成 ARXML 文件';
+      }
+    }
+    
+    // 显示激活码输入弹窗
+    function showActivationModal() {
+      const modal = document.getElementById('activationModal');
+      const input = document.getElementById('activationCodeInput');
+      modal.classList.remove('hidden');
+      input.focus();
+    }
+    
+    // 关闭激活码弹窗
+    function closeActivationModal() {
+      const modal = document.getElementById('activationModal');
+      const input = document.getElementById('activationCodeInput');
+      modal.classList.add('hidden');
+      input.value = '';
+    }
+    
+    // 验证激活码
+    async function verifyActivationCode() {
+      const input = document.getElementById('activationCodeInput');
+      const code = input.value.trim().toUpperCase();
+      
+      if (!code) {
+        alert('请输入激活码');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/check-code', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ code: code })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          currentActivationCode = code;
+          remainingUses = result.data.remaining_uses;
+          saveActivationInfo(code, remainingUses);
+          updateUsageDisplay();
+          closeActivationModal();
+          alert(`✅ 激活码验证成功！剩余使用次数: ${remainingUses}`);
+        } else {
+          alert(`❌ ${result.message}`);
+        }
+      } catch (error) {
+        console.error('验证激活码失败:', error);
+        alert('❌ 网络错误，请稍后重试');
+      }
+    }
+    
+    // 检查是否需要输入激活码
+    function checkActivationRequired() {
+      if (!currentActivationCode || remainingUses <= 0) {
+        showActivationModal();
+        return false;
+      }
+      return true;
+    }
+    
+    // ========== 原有文件上传逻辑 ==========
     const drop = document.getElementById('drop');
     const fileInput = document.getElementById('fileInput');
     const fileInfo = document.getElementById('fileInfo');
@@ -594,9 +835,14 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
       fileInfo.style.display = 'block';
     }
 
-    // 表单提交
+    // 表单提交 - 修改部分：添加激活码验证
     uploadForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      // *** 插入位置1: 检查激活码 ***
+      if (!checkActivationRequired()) {
+        return;
+      }
       
       if (!fileInput.files[0]) {
         alert('请先选择文件');
@@ -610,13 +856,26 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
 
       try {
         const formData = new FormData(e.target);
+        
+        // *** 插入位置2: 添加激活码到表单 ***
+        formData.append('activation_code', currentActivationCode);
+        
         const res = await fetch('/api/index', {
           method: 'POST',
           body: formData
         });
 
         if (!res.ok) {
-          throw new Error(`服务器错误: ${res.status}`);
+          const errorData = await res.json().catch(() => ({ message: `服务器错误: ${res.status}` }));
+          throw new Error(errorData.message || `服务器错误: ${res.status}`);
+        }
+
+        // *** 插入位置3: 检查响应类型 ***
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          // 如果返回JSON，说明是错误响应
+          const errorData = await res.json();
+          throw new Error(errorData.message || '生成失败');
         }
 
         const blob = await res.blob();
@@ -627,8 +886,13 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
         a.click();
         URL.revokeObjectURL(url);
 
+        // *** 插入位置4: 更新剩余次数 ***
+        remainingUses = Math.max(0, remainingUses - 1);
+        saveActivationInfo(currentActivationCode, remainingUses);
+        updateUsageDisplay();
+
         // 成功提示
-        alert('✅ ARXML 文件生成成功！');
+        alert(`✅ ARXML 文件生成成功！剩余使用次数: ${remainingUses}`);
       } catch (err) {
         alert('❌ 生成失败: ' + err.message);
         console.error(err);
@@ -637,7 +901,23 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
         submitBtn.disabled = false;
         submitBtn.textContent = '生成 ARXML 文件';
         loadingEl.classList.remove('show');
+        
+        // *** 插入位置5: 重新检查按钮状态 ***
+        updateUsageDisplay();
       }
+    });
+    
+    // *** 插入位置6: 页面加载时初始化 ***
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      loadActivationInfo();
+      
+      // 激活码输入框回车事件
+      document.getElementById('activationCodeInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          verifyActivationCode();
+        }
+      });
     });
   </script>
 </body>
