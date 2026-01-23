@@ -31,14 +31,76 @@ def get_redis_lock_key(code):
     """获取Redis锁键名"""
     return f"code_lock:{code}"
 
-def check_activation_code(code, user_ip, user_agent):
-    """验证激活码并扣除次数"""
+# ========== 新增：仅验证激活码（不扣减次数） ==========
+def verify_activation_code_only(code):
+    """
+    仅验证激活码的有效性，不扣减使用次数
+    用于前端仅校验激活码是否可用的场景（如输入后即时验证）
+    """
     if not code or len(code.strip()) == 0:
         return {"success": False, "message": "激活码不能为空"}
     
     code = code.strip().upper()
     
-    # Redis防并发锁
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cursor = conn.cursor()
+        
+        # 仅查询激活码的核心状态，不做任何修改
+        cursor.execute("""
+            SELECT id, remaining_uses, expires_at, is_active 
+            FROM activation_codes 
+            WHERE code = %s
+        """, (code,))
+        
+        result = cursor.fetchone()
+        
+        if not result:
+            return {"success": False, "message": "激活码无效或已禁用"}
+        
+        code_id, remaining_uses, expires_at, is_active = result
+        
+        # 检查激活码状态（保留你原有的时区处理逻辑）
+        if not is_active:
+            return {"success": False, "message": "激活码已被禁用"}
+        
+        if expires_at and datetime.now(tz=expires_at.tzinfo) > expires_at:
+            return {"success": False, "message": "激活码已过期"}
+        
+        if remaining_uses <= 0:
+            return {"success": False, "message": "激活码使用次数已用完"}
+        
+        # 验证成功，返回基础信息
+        return {
+            "success": True,
+            "message": "激活码验证成功",
+            "data": {
+                "remaining_uses": remaining_uses,
+                "code_id": code_id  # 用于后续扣减时快速定位
+            }
+        }
+        
+    except Exception as e:
+        return {"success": False, "message": f"验证失败: {str(e)}"}
+    
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
+
+# ========== 重构：验证+扣减激活码（仅生成文件时调用） ==========
+def check_activation_code(code, user_ip, user_agent):
+    """验证激活码并扣除次数"""
+    # 第一步：先调用仅验证函数，确认激活码有效
+    verify_result = verify_activation_code_only(code)
+    if not verify_result["success"]:
+        return verify_result  # 直接返回验证失败的结果
+    
+    code = code.strip().upper()
+    code_id = verify_result["data"]["code_id"]  # 从验证结果获取code_id
+    
+    # Redis防并发锁（保留原有逻辑）
     lock_key = get_redis_lock_key(code)
     lock_timeout = 10  # 10秒超时
     
@@ -52,28 +114,22 @@ def check_activation_code(code, user_ip, user_agent):
         conn = psycopg2.connect(DATABASE_URL)
         cursor = conn.cursor()
         
-        # 查询激活码
+        # 查询激活码的完整信息（用于扣减）
         cursor.execute("""
-            SELECT id, code, total_uses, used_count, remaining_uses, 
-                   is_active, expires_at, last_used_at
+            SELECT total_uses, used_count, remaining_uses, expires_at 
             FROM activation_codes 
-            WHERE code = %s AND is_active = TRUE
-        """, (code,))
+            WHERE id = %s
+        """, (code_id,))
         
-        result = cursor.fetchone()
+        total_uses, used_count, remaining_uses, expires_at = cursor.fetchone()
         
-        if not result:
-            return {"success": False, "message": "激活码无效或已禁用"}
-        
-        code_id, _, total_uses, used_count, remaining_uses, is_active, expires_at, last_used_at = result
-        
-        # 检查是否过期
-        if expires_at and datetime.now(tz=expires_at.tzinfo) > expires_at:
-            return {"success": False, "message": "激活码已过期"}
-        
-        # 检查剩余次数
+        # 再次检查剩余次数（防止验证后到扣减前，次数被其他请求用完）
         if remaining_uses <= 0:
             return {"success": False, "message": "激活码使用次数已用完"}
+        
+        # 再次检查过期状态（保留时区处理）
+        if expires_at and datetime.now(tz=expires_at.tzinfo) > expires_at:
+            return {"success": False, "message": "激活码已过期"}
         
         # 扣除次数
         new_used_count = used_count + 1
@@ -84,7 +140,7 @@ def check_activation_code(code, user_ip, user_agent):
             SET used_count = %s, remaining_uses = %s, last_used_at = %s,
                 user_ip = %s, user_agent = %s
             WHERE id = %s
-        """, (new_used_count, new_remaining_uses, datetime.now(tz=expires_at.tzinfo), user_ip, user_agent, code_id))
+        """, (new_used_count, new_remaining_uses, datetime.now(tz=expires_at.tzinfo) if expires_at else datetime.now(), user_ip, user_agent, code_id))
         
         # 记录使用日志
         cursor.execute("""
@@ -121,17 +177,15 @@ def check_activation_code(code, user_ip, user_agent):
 
 @app.route('/api/check-code', methods=['POST'])
 def check_code():
-    """验证激活码API"""
+    """验证激活码API（仅校验，不扣减次数）"""
     try:
         data = request.get_json()
         if not data or 'code' not in data:
             return jsonify({"success": False, "message": "请提供激活码"}), 400
         
         code = data['code']
-        user_ip = get_client_ip()
-        user_agent = request.headers.get('User-Agent', '')
-        
-        result = check_activation_code(code, user_ip, user_agent)
+        # 仅调用验证函数，不扣减次数
+        result = verify_activation_code_only(code)
         
         if result['success']:
             return jsonify(result), 200
@@ -160,7 +214,7 @@ def handle_upload():
     user_ip = get_client_ip()
     user_agent = request.headers.get('User-Agent', '')
     
-    # 验证激活码
+    # 验证激活码（此时才会扣减次数）
     code_result = check_activation_code(activation_code, user_ip, user_agent)
     if not code_result['success']:
         return jsonify(code_result), 400
