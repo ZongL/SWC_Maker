@@ -506,6 +506,7 @@
       <!-- 激活码使用情况显示 -->
       <div id="usageInfo" class="usage-info hidden">
         <span>剩余使用次数: <span id="remainingCount" class="usage-count">--</span></span>
+        <a href="#" id="changeCodeBtn" style="margin-left: 10px; color: #666; font-size: 12px;">[更换激活码]</a>
       </div>
       
       <form id="upload">
@@ -797,6 +798,12 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
 
     // 点击触发选择
     drop.addEventListener('click', () => fileInput.click());
+
+    // 更换激活码按钮
+    document.getElementById('changeCodeBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      showActivationModal();
+    });
 
     // 拖放高亮
     ['dragenter', 'dragover'].forEach(evt =>
