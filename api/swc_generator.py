@@ -503,7 +503,7 @@ def convert_xlsx_to_arxml(excel_file, output_file):
     # 创建单个文档包含所有内容
     workspace.create_document(output_file, packages=["/PortInterfaces", "/Constants", 
                                                     "/AUTOSAR_Platform", "/ComponentTypes"])
-    workspace.write_documents()
+    workspace.write_documents(schema_version=46)
     
     print(f"Generated ARXML file: {output_file}")
     print("Generation completed successfully!")

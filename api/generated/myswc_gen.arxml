@@ -32,28 +32,10 @@
           </DATA-ELEMENTS>
         </SENDER-RECEIVER-INTERFACE>
         <SENDER-RECEIVER-INTERFACE>
-          <SHORT-NAME>VehSpdVld</SHORT-NAME>
-          <DATA-ELEMENTS>
-            <VARIABLE-DATA-PROTOTYPE>
-              <SHORT-NAME>VehSpdVld</SHORT-NAME>
-              <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-            </VARIABLE-DATA-PROTOTYPE>
-          </DATA-ELEMENTS>
-        </SENDER-RECEIVER-INTERFACE>
-        <SENDER-RECEIVER-INTERFACE>
           <SHORT-NAME>FrLeDoorSts</SHORT-NAME>
           <DATA-ELEMENTS>
             <VARIABLE-DATA-PROTOTYPE>
               <SHORT-NAME>FrLeDoorSts</SHORT-NAME>
-              <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-            </VARIABLE-DATA-PROTOTYPE>
-          </DATA-ELEMENTS>
-        </SENDER-RECEIVER-INTERFACE>
-        <SENDER-RECEIVER-INTERFACE>
-          <SHORT-NAME>ReLeDoorSts3</SHORT-NAME>
-          <DATA-ELEMENTS>
-            <VARIABLE-DATA-PROTOTYPE>
-              <SHORT-NAME>ReLeDoorSts4</SHORT-NAME>
               <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
             </VARIABLE-DATA-PROTOTYPE>
           </DATA-ELEMENTS>
@@ -183,23 +165,7 @@
           </VALUE-SPEC>
         </CONSTANT-SPECIFICATION>
         <CONSTANT-SPECIFICATION>
-          <SHORT-NAME>VehSpdVld_IV</SHORT-NAME>
-          <VALUE-SPEC>
-            <NUMERICAL-VALUE-SPECIFICATION>
-              <VALUE>0</VALUE>
-            </NUMERICAL-VALUE-SPECIFICATION>
-          </VALUE-SPEC>
-        </CONSTANT-SPECIFICATION>
-        <CONSTANT-SPECIFICATION>
           <SHORT-NAME>FrLeDoorSts_IV</SHORT-NAME>
-          <VALUE-SPEC>
-            <NUMERICAL-VALUE-SPECIFICATION>
-              <VALUE>0</VALUE>
-            </NUMERICAL-VALUE-SPECIFICATION>
-          </VALUE-SPEC>
-        </CONSTANT-SPECIFICATION>
-        <CONSTANT-SPECIFICATION>
-          <SHORT-NAME>ReLeDoorSts4_IV</SHORT-NAME>
           <VALUE-SPEC>
             <NUMERICAL-VALUE-SPECIFICATION>
               <VALUE>0</VALUE>
@@ -238,6 +204,11 @@
             <SW-BASE-TYPE>
               <SHORT-NAME>uint32</SHORT-NAME>
               <BASE-TYPE-SIZE>32</BASE-TYPE-SIZE>
+            </SW-BASE-TYPE>
+            <SW-BASE-TYPE>
+              <SHORT-NAME>float32</SHORT-NAME>
+              <BASE-TYPE-SIZE>32</BASE-TYPE-SIZE>
+              <BASE-TYPE-ENCODING>IEEE754</BASE-TYPE-ENCODING>
             </SW-BASE-TYPE>
           </ELEMENTS>
         </AR-PACKAGE>
@@ -286,6 +257,17 @@
                 <SW-DATA-DEF-PROPS-VARIANTS>
                   <SW-DATA-DEF-PROPS-CONDITIONAL>
                     <BASE-TYPE-REF DEST="SW-BASE-TYPE">/AUTOSAR_Platform/BaseTypes/uint32</BASE-TYPE-REF>
+                  </SW-DATA-DEF-PROPS-CONDITIONAL>
+                </SW-DATA-DEF-PROPS-VARIANTS>
+              </SW-DATA-DEF-PROPS>
+            </IMPLEMENTATION-DATA-TYPE>
+            <IMPLEMENTATION-DATA-TYPE>
+              <SHORT-NAME>float32</SHORT-NAME>
+              <CATEGORY>VALUE</CATEGORY>
+              <SW-DATA-DEF-PROPS>
+                <SW-DATA-DEF-PROPS-VARIANTS>
+                  <SW-DATA-DEF-PROPS-CONDITIONAL>
+                    <BASE-TYPE-REF DEST="SW-BASE-TYPE">/AUTOSAR_Platform/BaseTypes/float32</BASE-TYPE-REF>
                   </SW-DATA-DEF-PROPS-CONDITIONAL>
                 </SW-DATA-DEF-PROPS-VARIANTS>
               </SW-DATA-DEF-PROPS>
@@ -391,21 +373,6 @@
               <REQUIRED-INTERFACE-TREF DEST="SENDER-RECEIVER-INTERFACE">/PortInterfaces/VehSpd</REQUIRED-INTERFACE-TREF>
             </R-PORT-PROTOTYPE>
             <R-PORT-PROTOTYPE>
-              <SHORT-NAME>VehSpdVld</SHORT-NAME>
-              <REQUIRED-COM-SPECS>
-                <NONQUEUED-RECEIVER-COM-SPEC>
-                  <DATA-ELEMENT-REF DEST="VARIABLE-DATA-PROTOTYPE">/PortInterfaces/VehSpdVld/VehSpdVld</DATA-ELEMENT-REF>
-                  <USES-END-TO-END-PROTECTION>false</USES-END-TO-END-PROTECTION>
-                  <INIT-VALUE>
-                    <CONSTANT-REFERENCE>
-                      <CONSTANT-REF DEST="CONSTANT-SPECIFICATION">/Constants/VehSpdVld_IV</CONSTANT-REF>
-                    </CONSTANT-REFERENCE>
-                  </INIT-VALUE>
-                </NONQUEUED-RECEIVER-COM-SPEC>
-              </REQUIRED-COM-SPECS>
-              <REQUIRED-INTERFACE-TREF DEST="SENDER-RECEIVER-INTERFACE">/PortInterfaces/VehSpdVld</REQUIRED-INTERFACE-TREF>
-            </R-PORT-PROTOTYPE>
-            <R-PORT-PROTOTYPE>
               <SHORT-NAME>FrLeDoorSts</SHORT-NAME>
               <REQUIRED-COM-SPECS>
                 <NONQUEUED-RECEIVER-COM-SPEC>
@@ -419,21 +386,6 @@
                 </NONQUEUED-RECEIVER-COM-SPEC>
               </REQUIRED-COM-SPECS>
               <REQUIRED-INTERFACE-TREF DEST="SENDER-RECEIVER-INTERFACE">/PortInterfaces/FrLeDoorSts</REQUIRED-INTERFACE-TREF>
-            </R-PORT-PROTOTYPE>
-            <R-PORT-PROTOTYPE>
-              <SHORT-NAME>ReLeDoorSts3</SHORT-NAME>
-              <REQUIRED-COM-SPECS>
-                <NONQUEUED-RECEIVER-COM-SPEC>
-                  <DATA-ELEMENT-REF DEST="VARIABLE-DATA-PROTOTYPE">/PortInterfaces/ReLeDoorSts3/ReLeDoorSts4</DATA-ELEMENT-REF>
-                  <USES-END-TO-END-PROTECTION>false</USES-END-TO-END-PROTECTION>
-                  <INIT-VALUE>
-                    <CONSTANT-REFERENCE>
-                      <CONSTANT-REF DEST="CONSTANT-SPECIFICATION">/Constants/ReLeDoorSts4_IV</CONSTANT-REF>
-                    </CONSTANT-REFERENCE>
-                  </INIT-VALUE>
-                </NONQUEUED-RECEIVER-COM-SPEC>
-              </REQUIRED-COM-SPECS>
-              <REQUIRED-INTERFACE-TREF DEST="SENDER-RECEIVER-INTERFACE">/PortInterfaces/ReLeDoorSts3</REQUIRED-INTERFACE-TREF>
             </R-PORT-PROTOTYPE>
             <R-PORT-PROTOTYPE>
               <SHORT-NAME>ReLeDoorSts</SHORT-NAME>
@@ -473,6 +425,9 @@
               <PROVIDED-COM-SPECS>
                 <SERVER-COM-SPEC>
                   <OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method1</OPERATION-REF>
+                </SERVER-COM-SPEC>
+                <SERVER-COM-SPEC>
+                  <OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method2</OPERATION-REF>
                 </SERVER-COM-SPEC>
                 <SERVER-COM-SPEC>
                   <OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method2</OPERATION-REF>
@@ -524,7 +479,15 @@
                   </OPERATION-IREF>
                 </OPERATION-INVOKED-EVENT>
                 <OPERATION-INVOKED-EVENT>
-                  <SHORT-NAME>OIT_PSDContrl_SetWindowCmd_method2_SetWindowCmd_method2</SHORT-NAME>
+                  <SHORT-NAME>OIT_PSDContrl_SetWindowCmd_method2_SetWindowCmd_method2_0</SHORT-NAME>
+                  <START-ON-EVENT-REF DEST="RUNNABLE-ENTITY">/ComponentTypes/PSDContrl/PSDContrl_InternalBehavior/PSDContrl_SetWindowCmd_method2</START-ON-EVENT-REF>
+                  <OPERATION-IREF>
+                    <CONTEXT-P-PORT-REF DEST="P-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/SetWindowCmd</CONTEXT-P-PORT-REF>
+                    <TARGET-PROVIDED-OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method2</TARGET-PROVIDED-OPERATION-REF>
+                  </OPERATION-IREF>
+                </OPERATION-INVOKED-EVENT>
+                <OPERATION-INVOKED-EVENT>
+                  <SHORT-NAME>OIT_PSDContrl_SetWindowCmd_method2_SetWindowCmd_method2_1</SHORT-NAME>
                   <START-ON-EVENT-REF DEST="RUNNABLE-ENTITY">/ComponentTypes/PSDContrl/PSDContrl_InternalBehavior/PSDContrl_SetWindowCmd_method2</START-ON-EVENT-REF>
                   <OPERATION-IREF>
                     <CONTEXT-P-PORT-REF DEST="P-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/SetWindowCmd</CONTEXT-P-PORT-REF>
@@ -556,11 +519,6 @@
                 <PORT-API-OPTION>
                   <ENABLE-TAKE-ADDRESS>false</ENABLE-TAKE-ADDRESS>
                   <INDIRECT-API>false</INDIRECT-API>
-                  <PORT-REF DEST="R-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/ReLeDoorSts3</PORT-REF>
-                </PORT-API-OPTION>
-                <PORT-API-OPTION>
-                  <ENABLE-TAKE-ADDRESS>false</ENABLE-TAKE-ADDRESS>
-                  <INDIRECT-API>false</INDIRECT-API>
                   <PORT-REF DEST="P-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/SetDoorCmd</PORT-REF>
                 </PORT-API-OPTION>
                 <PORT-API-OPTION>
@@ -577,11 +535,6 @@
                   <ENABLE-TAKE-ADDRESS>false</ENABLE-TAKE-ADDRESS>
                   <INDIRECT-API>false</INDIRECT-API>
                   <PORT-REF DEST="R-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/VehSpd</PORT-REF>
-                </PORT-API-OPTION>
-                <PORT-API-OPTION>
-                  <ENABLE-TAKE-ADDRESS>false</ENABLE-TAKE-ADDRESS>
-                  <INDIRECT-API>false</INDIRECT-API>
-                  <PORT-REF DEST="R-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/VehSpdVld</PORT-REF>
                 </PORT-API-OPTION>
               </PORT-API-OPTIONS>
               <RUNNABLES>
@@ -606,29 +559,11 @@
                       </ACCESSED-VARIABLE>
                     </VARIABLE-ACCESS>
                     <VARIABLE-ACCESS>
-                      <SHORT-NAME>REC_VehSpdVld_VehSpdVld</SHORT-NAME>
-                      <ACCESSED-VARIABLE>
-                        <AUTOSAR-VARIABLE-IREF>
-                          <PORT-PROTOTYPE-REF DEST="R-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/VehSpdVld</PORT-PROTOTYPE-REF>
-                          <TARGET-DATA-PROTOTYPE-REF DEST="VARIABLE-DATA-PROTOTYPE">/PortInterfaces/VehSpdVld/VehSpdVld</TARGET-DATA-PROTOTYPE-REF>
-                        </AUTOSAR-VARIABLE-IREF>
-                      </ACCESSED-VARIABLE>
-                    </VARIABLE-ACCESS>
-                    <VARIABLE-ACCESS>
                       <SHORT-NAME>REC_FrLeDoorSts_FrLeDoorSts</SHORT-NAME>
                       <ACCESSED-VARIABLE>
                         <AUTOSAR-VARIABLE-IREF>
                           <PORT-PROTOTYPE-REF DEST="R-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/FrLeDoorSts</PORT-PROTOTYPE-REF>
                           <TARGET-DATA-PROTOTYPE-REF DEST="VARIABLE-DATA-PROTOTYPE">/PortInterfaces/FrLeDoorSts/FrLeDoorSts</TARGET-DATA-PROTOTYPE-REF>
-                        </AUTOSAR-VARIABLE-IREF>
-                      </ACCESSED-VARIABLE>
-                    </VARIABLE-ACCESS>
-                    <VARIABLE-ACCESS>
-                      <SHORT-NAME>REC_ReLeDoorSts3_ReLeDoorSts4</SHORT-NAME>
-                      <ACCESSED-VARIABLE>
-                        <AUTOSAR-VARIABLE-IREF>
-                          <PORT-PROTOTYPE-REF DEST="R-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/ReLeDoorSts3</PORT-PROTOTYPE-REF>
-                          <TARGET-DATA-PROTOTYPE-REF DEST="VARIABLE-DATA-PROTOTYPE">/PortInterfaces/ReLeDoorSts3/ReLeDoorSts4</TARGET-DATA-PROTOTYPE-REF>
                         </AUTOSAR-VARIABLE-IREF>
                       </ACCESSED-VARIABLE>
                     </VARIABLE-ACCESS>
@@ -681,6 +616,12 @@
                   <MINIMUM-START-INTERVAL>0</MINIMUM-START-INTERVAL>
                   <CAN-BE-INVOKED-CONCURRENTLY>false</CAN-BE-INVOKED-CONCURRENTLY>
                   <SYMBOL>PSDContrl_SetWindowCmd_method1</SYMBOL>
+                </RUNNABLE-ENTITY>
+                <RUNNABLE-ENTITY>
+                  <SHORT-NAME>PSDContrl_SetWindowCmd_method2</SHORT-NAME>
+                  <MINIMUM-START-INTERVAL>0</MINIMUM-START-INTERVAL>
+                  <CAN-BE-INVOKED-CONCURRENTLY>false</CAN-BE-INVOKED-CONCURRENTLY>
+                  <SYMBOL>PSDContrl_SetWindowCmd_method2</SYMBOL>
                 </RUNNABLE-ENTITY>
                 <RUNNABLE-ENTITY>
                   <SHORT-NAME>PSDContrl_SetWindowCmd_method2</SHORT-NAME>
