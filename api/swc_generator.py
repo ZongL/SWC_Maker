@@ -58,7 +58,10 @@ def create_platform_types(workspace: ar_workspace.Workspace):
     
     uint32_base_type = ar_element.SwBaseType('uint32', size=32)
     workspace.add_element("PlatformBaseTypes", uint32_base_type)
-    
+
+    float32_base_type = ar_element.SwBaseType('float32', size=32, encoding="IEEE754")
+    workspace.add_element("PlatformBaseTypes", float32_base_type)
+
     # 创建数据约束
     boolean_data_constr = ar_element.DataConstraint.make_internal("boolean_DataConstr", 0, 1)
     workspace.add_element("PlatformDataConstraints", boolean_data_constr)
@@ -99,6 +102,12 @@ def create_platform_types(workspace: ar_workspace.Workspace):
                                                          sw_data_def_props=sw_data_def_props)
     workspace.add_element("PlatformImplementationDataTypes", uint32_impl_type)
 
+    sw_data_def_props = ar_element.SwDataDefPropsConditional(base_type_ref=float32_base_type.ref())
+    float32_impl_type = ar_element.ImplementationDataType("float32",
+                                                          category="VALUE",
+                                                          sw_data_def_props=sw_data_def_props)
+    workspace.add_element("PlatformImplementationDataTypes", float32_impl_type)
+
 
 def create_data_type(workspace: ar_workspace.Workspace, data_type_name: str):
     """
@@ -106,8 +115,9 @@ def create_data_type(workspace: ar_workspace.Workspace, data_type_name: str):
     """
     data_type_map = {
         'uint8': 'uint8',
-        'uint16': 'uint16', 
+        'uint16': 'uint16',
         'uint32': 'uint32',
+        'float32': 'float32',
         'boolean': 'boolean'
     }
     
@@ -198,41 +208,44 @@ def create_port(swc: ar_element.ApplicationSoftwareComponentType, port_name: str
         raise ValueError(f"Unknown direction: {direction}")
 
 
-def create_clientserver_port(swc: ar_element.ApplicationSoftwareComponentType, port_name: str, 
-                             interface_ref, direction: str, operation_name: str):
+def create_clientserver_port(swc: ar_element.ApplicationSoftwareComponentType, port_name: str,
+                             interface_ref, direction: str, operation_names):
     """
     创建ClientServer类型的端口（提供端口或需求端口）
-    需要指定operation引用
+    支持单个或多个operation
     """
-    # 从接口中查找operation
+    if isinstance(operation_names, str):
+        operation_names = [operation_names]
+
     interface = interface_ref
-    operation = None
-    
-    if hasattr(interface, 'operations') and interface.operations:
-        for op in interface.operations:
-            if op.name == operation_name:
-                operation = op
-                break
-    
-    if operation is None:
-        raise ValueError(f"Operation '{operation_name}' not found in interface '{interface.name}'")
-    
-    # 获取operation引用
-    operation_ref = operation.ref()
-    if operation_ref is None:
-        raise ValueError(f"Operation '{operation_name}' reference is None. Make sure the interface is added to workspace first.")
-    
-    # 创建com_spec（注意：需要放在列表中传递）
+    com_specs = []
+
+    for operation_name in operation_names:
+        operation = None
+        if hasattr(interface, 'operations') and interface.operations:
+            for op in interface.operations:
+                if op.name == operation_name:
+                    operation = op
+                    break
+
+        if operation is None:
+            raise ValueError(f"Operation '{operation_name}' not found in interface '{interface.name}'")
+
+        operation_ref = operation.ref()
+        if operation_ref is None:
+            raise ValueError(f"Operation '{operation_name}' reference is None. Make sure the interface is added to workspace first.")
+
+        if direction.lower() == 'provide':
+            com_specs.append(ar_element.ServerComSpec(operation_ref=operation_ref))
+        elif direction.lower() == 'require':
+            com_specs.append(ar_element.ClientComSpec(operation_ref=operation_ref))
+        else:
+            raise ValueError(f"Unknown direction: {direction}")
+
     if direction.lower() == 'provide':
-        # 提供端口使用ServerComSpec
-        com_spec = [ar_element.ServerComSpec(operation_ref=operation_ref)]
-        return swc.create_provide_port(port_name, interface_ref, com_spec=com_spec)
+        return swc.create_provide_port(port_name, interface_ref, com_spec=com_specs)
     elif direction.lower() == 'require':
-        # 需求端口使用ClientComSpec
-        com_spec = [ar_element.ClientComSpec(operation_ref=operation_ref)]
-        return swc.create_require_port(port_name, interface_ref, com_spec=com_spec)
-    else:
-        raise ValueError(f"Unknown direction: {direction}")
+        return swc.create_require_port(port_name, interface_ref, com_spec=com_specs)
 
 
 def create_runnable(behavior, runnable_name: str, port_names: list):
@@ -258,22 +271,28 @@ def create_access_points(behavior, port_names: list):
 def create_constants(workspace: ar_workspace.Workspace, interface_data: dict):
     """
     创建常量规范（初始值）
+    仅为SenderReceiver接口创建常量
     """
-    for interface_name, element_info in interface_data.items():
-        element_name = element_info['element_name']
-        data_type = element_info['data_type']
-        
-        # 根据数据类型设置默认初始值
-        if data_type.lower() == 'boolean':
-            init_value = 0  # FALSE
-        elif data_type.lower() in ['uint8', 'uint16', 'uint32']:
-            init_value = 0
-        else:
-            init_value = 0
-            
-        constant_name = f"{element_name}_IV"
-        constant = ar_element.ConstantSpecification.make_constant(constant_name, init_value)
-        workspace.add_element("Constants", constant)
+    for interface_name, info in interface_data.items():
+        # ClientServer接口不需要初始值常量
+        if info['interface_type'].strip().lower() == 'clientserver':
+            continue
+
+        for elem in info['elements']:
+            element_name = elem['element_name']
+            data_type = elem['data_type']
+
+            # 根据数据类型设置默认初始值
+            if data_type.lower() == 'boolean':
+                init_value = 0  # FALSE
+            elif data_type.lower() in ['uint8', 'uint16', 'uint32']:
+                init_value = 0
+            else:
+                init_value = 0
+
+            constant_name = f"{element_name}_IV"
+            constant = ar_element.ConstantSpecification.make_constant(constant_name, init_value)
+            workspace.add_element("Constants", constant)
 
 
 def read_excel_data(excel_file: str):
@@ -314,11 +333,11 @@ def convert_xlsx_to_arxml(excel_file, output_file):
     interface_data = {}
     swc_name = None
     port_info = []
-    
+
     for _, row in df.iterrows():
         if pd.isna(row['SWCName']):
             continue
-            
+
         swc_name = row['SWCName']
         direction = row['Direction']
         port_name = row['PortName']
@@ -326,15 +345,22 @@ def convert_xlsx_to_arxml(excel_file, output_file):
         element_name = row['ElementName']
         interface_type = row['InterfaceType']
         element_data_type = row['ElementDataType']
-        
-        # 存储接口信息
+
+        # 存储接口信息（支持同一接口多个element）
         if interface_name not in interface_data:
             interface_data[interface_name] = {
-                'element_name': element_name,
-                'data_type': element_data_type,
+                'elements': [{'element_name': element_name, 'data_type': element_data_type}],
                 'interface_type': interface_type
             }
-        
+        else:
+            # 检查该element是否已存在，避免重复
+            existing_names = [e['element_name'] for e in interface_data[interface_name]['elements']]
+            if element_name not in existing_names:
+                interface_data[interface_name]['elements'].append({
+                    'element_name': element_name,
+                    'data_type': element_data_type
+                })
+
         # 存储端口信息
         port_info.append({
             'port_name': port_name,
@@ -355,15 +381,18 @@ def convert_xlsx_to_arxml(excel_file, output_file):
     created_interfaces = {}
     for interface_name, info in interface_data.items():
         interface_type = info['interface_type'].strip().lower()
-        
+
         if interface_type == 'clientserver':
-            # 创建ClientServer接口
-            interface = create_clientserver_interface(workspace, interface_name, info['element_name'], info['data_type'])
+            # 创建ClientServer接口，为每个element创建operation
+            for elem in info['elements']:
+                interface = create_clientserver_interface(workspace, interface_name, elem['element_name'], elem['data_type'])
             created_interfaces[interface_name] = interface
-            print(f"Created ClientServer interface: {interface_name} with operation: {info['element_name']}")
+            op_names = [e['element_name'] for e in info['elements']]
+            print(f"Created ClientServer interface: {interface_name} with operations: {op_names}")
         else:
             # 创建SenderReceiver接口
-            interface = create_senderreceiver_interface(workspace, interface_name, info['element_name'], info['data_type'])
+            elem = info['elements'][0]
+            interface = create_senderreceiver_interface(workspace, interface_name, elem['element_name'], elem['data_type'])
             created_interfaces[interface_name] = interface
             print(f"Created SenderReceiver interface: {interface_name}")
     
@@ -375,26 +404,44 @@ def convert_xlsx_to_arxml(excel_file, output_file):
         # 创建端口，并分类收集端口信息
         sr_port_names = []  # SenderReceiver端口
         cs_port_operations = []  # ClientServer端口的operation信息
-        
+        cs_ports_grouped = {}  # 按port_name分组CS端口信息
+
+        # 先分组收集CS端口的所有operation
+        for port in port_info:
+            interface_type = port['interface_type']
+            if interface_type.strip().lower() == 'clientserver':
+                pname = port['port_name']
+                if pname not in cs_ports_grouped:
+                    cs_ports_grouped[pname] = {
+                        'interface_name': port['interface_name'],
+                        'direction': port['direction'],
+                        'operations': []
+                    }
+                cs_ports_grouped[pname]['operations'].append(port['element_name'])
+
         for port in port_info:
             interface = created_interfaces[port['interface_name']]
             interface_type = port['interface_type']
             element_name = port['element_name']
-            
+
             if interface_type.strip().lower() == 'clientserver':
-                # ClientServer接口使用专门的函数创建端口
-                create_clientserver_port(swc, port['port_name'], interface, port['direction'], element_name)
-                # 只为provide端口创建runnable和event
+                pname = port['port_name']
+                # 仅在第一次遇到该port时创建（带所有operation的com_spec）
+                if pname in cs_ports_grouped:
+                    all_ops = cs_ports_grouped.pop(pname)
+                    create_clientserver_port(swc, pname, interface, all_ops['direction'], all_ops['operations'])
+                    print(f"Created {all_ops['direction']} CS port: {pname} with operations: {all_ops['operations']}")
+
+                # 为provide端口的每个operation收集runnable信息
                 if port['direction'].lower() == 'provide':
                     cs_port_operations.append({
                         'port_name': port['port_name'],
                         'operation_name': element_name
                     })
-                print(f"Created {port['direction']} CS port: {port['port_name']}")
             else:
                 # SenderReceiver接口需要初始值
                 init_value = workspace.find_element("Constants", f"{element_name}_IV")
-                create_port(swc, port['port_name'], interface, port['direction'], 
+                create_port(swc, port['port_name'], interface, port['direction'],
                            init_value.ref() if init_value else None)
                 sr_port_names.append(port['port_name'])
                 print(f"Created {port['direction']} SR port: {port['port_name']}")
