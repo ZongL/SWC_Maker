@@ -719,7 +719,7 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
       const usageInfo = document.getElementById('usageInfo');
       const remainingCount = document.getElementById('remainingCount');
       
-      if (currentActivationCode && remainingUses > 0) {
+      if (currentActivationCode) {
         remainingCount.textContent = remainingUses;
         usageInfo.classList.remove('hidden');
       } else {
