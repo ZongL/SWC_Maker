@@ -109,9 +109,10 @@ def create_platform_types(workspace: ar_workspace.Workspace):
     workspace.add_element("PlatformImplementationDataTypes", float32_impl_type)
 
 
-def create_data_type(workspace: ar_workspace.Workspace, data_type_name: str):
+def create_data_type(workspace: ar_workspace.Workspace, data_type_name: str, struct_types=None):
     """
     根据数据类型名称创建对应的实现数据类型引用
+    支持基本类型和结构体类型
     """
     data_type_map = {
         'uint8': 'uint8',
@@ -120,12 +121,27 @@ def create_data_type(workspace: ar_workspace.Workspace, data_type_name: str):
         'float32': 'float32',
         'boolean': 'boolean'
     }
-    
-    impl_type_name = data_type_map.get(data_type_name.lower(), 'uint8')  # 默认使用uint8
-    return workspace.find_element("PlatformImplementationDataTypes", impl_type_name)
+
+    # 先查基本类型
+    if data_type_name.lower() in data_type_map:
+        impl_type_name = data_type_map[data_type_name.lower()]
+        return workspace.find_element("PlatformImplementationDataTypes", impl_type_name)
+
+    # 再查结构体类型
+    if struct_types and data_type_name in struct_types:
+        return struct_types[data_type_name]
+
+    # 尝试在包中直接查找
+    result = workspace.find_element("PlatformImplementationDataTypes", data_type_name)
+    if result is not None:
+        return result
+
+    # 默认回退到 uint8
+    print(f"Warning: Data type '{data_type_name}' not found, using uint8 as default")
+    return workspace.find_element("PlatformImplementationDataTypes", 'uint8')
 
 
-def create_senderreceiver_interface(workspace: ar_workspace.Workspace, interface_name: str, element_name: str, data_type: str):
+def create_senderreceiver_interface(workspace: ar_workspace.Workspace, interface_name: str, element_name: str, data_type: str, struct_types=None):
     """
     创建发送接收接口
     """
@@ -133,9 +149,9 @@ def create_senderreceiver_interface(workspace: ar_workspace.Workspace, interface
     existing_interface = workspace.find_element("PortInterfaces", interface_name)
     if existing_interface is not None:
         return existing_interface
-    
+
     # 获取数据类型
-    impl_type = create_data_type(workspace, data_type)
+    impl_type = create_data_type(workspace, data_type, struct_types)
     if impl_type is None:
         print(f"Warning: Data type {data_type} not found, using uint8 as default")
         impl_type = workspace.find_element("PlatformImplementationDataTypes", "uint8")
@@ -147,25 +163,25 @@ def create_senderreceiver_interface(workspace: ar_workspace.Workspace, interface
     
     return port_interface
 
-def create_clientserver_interface(workspace: ar_workspace.Workspace, interface_name: str, operation_name: str, data_type: str):
+def create_clientserver_interface(workspace: ar_workspace.Workspace, interface_name: str, operation_name: str, data_type: str, struct_types=None):
     """
     创建ClientServer接口
     如果接口已存在，则向其添加新的operation
     """
     import autosar.xml.enumeration as ar_enum
-    
+
     # 检查接口是否已存在
     existing_interface = workspace.find_element("PortInterfaces", interface_name)
-    
+
     if existing_interface is not None:
         # 接口已存在，添加新的operation
         portinterface = existing_interface
     else:
         # 创建新的ClientServer接口
         portinterface = ar_element.ClientServerInterface(interface_name, is_service=False)
-    
+
     # 获取数据类型
-    impl_type = create_data_type(workspace, data_type)
+    impl_type = create_data_type(workspace, data_type, struct_types)
     if impl_type is None:
         print(f"Warning: Data type {data_type} not found, using uint8 as default")
         impl_type = workspace.find_element("PlatformImplementationDataTypes", "uint8")
@@ -268,10 +284,35 @@ def create_access_points(behavior, port_names: list):
         behavior.create_port_api_options("*", enable_take_address=False, indirect_api=False)
 
 
-def create_constants(workspace: ar_workspace.Workspace, interface_data: dict):
+def _build_struct_init_value(struct_name, struct_defs):
+    """
+    递归构建结构体的 RecordValueSpecification 初始值
+    每个成员默认为 0
+    """
+    members = struct_defs[struct_name]
+    fields = []
+
+    for member in members:
+        member_name = member['member_name']
+        member_type = member['member_type']
+
+        if member_type.lower() in PRIMITIVE_TYPES:
+            field = ar_element.NumericalValueSpecification(label=member_name, value=0)
+        elif member_type in struct_defs:
+            field = _build_struct_init_value(member_type, struct_defs)
+        else:
+            field = ar_element.NumericalValueSpecification(label=member_name, value=0)
+
+        fields.append(field)
+
+    return ar_element.RecordValueSpecification(fields=fields)
+
+
+def create_constants(workspace: ar_workspace.Workspace, interface_data: dict, struct_defs=None):
     """
     创建常量规范（初始值）
     仅为SenderReceiver接口创建常量
+    支持基本类型和结构体类型
     """
     for interface_name, info in interface_data.items():
         # ClientServer接口不需要初始值常量
@@ -282,52 +323,217 @@ def create_constants(workspace: ar_workspace.Workspace, interface_data: dict):
             element_name = elem['element_name']
             data_type = elem['data_type']
 
-            # 根据数据类型设置默认初始值
-            if data_type.lower() == 'boolean':
-                init_value = 0  # FALSE
-            elif data_type.lower() in ['uint8', 'uint16', 'uint32']:
-                init_value = 0
-            else:
-                init_value = 0
-
             constant_name = f"{element_name}_IV"
-            constant = ar_element.ConstantSpecification.make_constant(constant_name, init_value)
+
+            if struct_defs and data_type in struct_defs:
+                # 结构体类型：构建 RecordValueSpecification
+                init_value = _build_struct_init_value(data_type, struct_defs)
+                constant = ar_element.ConstantSpecification(constant_name, init_value)
+            else:
+                # 基本类型：数值 0
+                constant = ar_element.ConstantSpecification.make_constant(constant_name, 0)
+
             workspace.add_element("Constants", constant)
 
 
 def read_excel_data(excel_file: str):
     """
     读取Excel文件并解析接口信息
+    返回 (main_df, struct_df) 元组，struct_df 可能为 None
     """
     try:
-        df = pd.read_excel(excel_file)
+        df = pd.read_excel(excel_file, sheet_name=0)
         print(f"Successfully read Excel file: {excel_file}")
         print(f"Data shape: {df.shape}")
         print(f"Columns: {df.columns.tolist()}")
-        
+
         # 清理列名（移除特殊字符）
         df.columns = df.columns.str.strip()
-        
-        return df
+
+        # 尝试读取 Struct sheet（可选）
+        struct_df = None
+        try:
+            struct_df = pd.read_excel(excel_file, sheet_name='Struct')
+            struct_df.columns = struct_df.columns.str.strip()
+            print(f"Found Struct sheet with {len(struct_df)} rows")
+        except ValueError:
+            print("No Struct sheet found, skipping struct type creation")
+
+        return df, struct_df
     except Exception as e:
         print(f"Error reading Excel file: {e}")
-        return None
+        return None, None
+
+
+PRIMITIVE_TYPES = {'uint8', 'uint16', 'uint32', 'float32', 'boolean'}
+
+
+def parse_struct_definitions(struct_df):
+    """
+    解析 Struct sheet 为结构体定义字典
+    返回: OrderedDict { struct_name: [ {member_name, member_type}, ... ] }
+    """
+    from collections import OrderedDict
+
+    if struct_df is None or struct_df.empty:
+        return OrderedDict()
+
+    structs = OrderedDict()
+    for _, row in struct_df.iterrows():
+        if pd.isna(row.get('StructName')) or pd.isna(row.get('MemberName')):
+            continue
+
+        struct_name = str(row['StructName']).strip()
+        member_name = str(row['MemberName']).strip()
+        member_type = str(row['MemberType']).strip()
+
+        if struct_name not in structs:
+            structs[struct_name] = []
+        structs[struct_name].append({
+            'member_name': member_name,
+            'member_type': member_type
+        })
+
+    return structs
+
+
+def validate_struct_definitions(struct_defs):
+    """
+    校验结构体定义的合法性
+    """
+    struct_names = set(struct_defs.keys())
+    errors = []
+
+    for struct_name, members in struct_defs.items():
+        # 结构体名不能与基本类型冲突
+        if struct_name.lower() in PRIMITIVE_TYPES:
+            errors.append(f"Struct name '{struct_name}' conflicts with primitive type")
+
+        # 成员名在结构体内唯一
+        member_names = [m['member_name'] for m in members]
+        if len(member_names) != len(set(member_names)):
+            errors.append(f"Struct '{struct_name}' has duplicate member names")
+
+        # 成员类型必须是基本类型或已定义的结构体
+        for member in members:
+            mt = member['member_type']
+            if mt.lower() not in PRIMITIVE_TYPES and mt not in struct_names:
+                errors.append(
+                    f"Struct '{struct_name}' member '{member['member_name']}' "
+                    f"has unknown type '{mt}'"
+                )
+
+    if errors:
+        raise ValueError("Struct validation errors:\n" + "\n".join(errors))
+
+
+def resolve_struct_order(struct_defs):
+    """
+    拓扑排序：被依赖的结构体先创建
+    检测循环依赖
+    """
+    struct_names = set(struct_defs.keys())
+
+    # 构建依赖图
+    deps = {}
+    for struct_name, members in struct_defs.items():
+        deps[struct_name] = set()
+        for member in members:
+            mt = member['member_type']
+            if mt.lower() not in PRIMITIVE_TYPES and mt in struct_names:
+                deps[struct_name].add(mt)
+
+    # Kahn 算法拓扑排序
+    in_degree = {name: len(dep_set) for name, dep_set in deps.items()}
+    queue = [name for name, d in in_degree.items() if d == 0]
+    order = []
+
+    while queue:
+        current = queue.pop(0)
+        order.append(current)
+        for name in struct_names:
+            if current in deps.get(name, set()):
+                deps[name].discard(current)
+                in_degree[name] -= 1
+                if in_degree[name] == 0:
+                    queue.append(name)
+
+    if len(order) != len(struct_names):
+        remaining = struct_names - set(order)
+        raise ValueError(f"Circular struct dependency detected among: {remaining}")
+
+    return order
+
+
+def create_struct_types(workspace, struct_defs):
+    """
+    按拓扑序创建 STRUCTURE ImplementationDataType
+    返回: dict { struct_name: ImplementationDataType }
+    """
+    created_structs = {}
+    creation_order = resolve_struct_order(struct_defs)
+
+    for struct_name in creation_order:
+        members = struct_defs[struct_name]
+        sub_elements = []
+
+        for member in members:
+            member_name = member['member_name']
+            member_type = member['member_type']
+
+            if member_type.lower() in PRIMITIVE_TYPES:
+                impl_type = workspace.find_element("PlatformImplementationDataTypes",
+                                                   member_type.lower())
+            elif member_type in created_structs:
+                impl_type = created_structs[member_type]
+            else:
+                raise ValueError(
+                    f"Unknown member type '{member_type}' in struct '{struct_name}'"
+                )
+
+            sw_data_def_props = ar_element.SwDataDefPropsConditional(
+                impl_data_type_ref=impl_type.ref()
+            )
+            sub_elem = ar_element.ImplementationDataTypeElement(
+                member_name,
+                category="TYPE_REFERENCE",
+                sw_data_def_props=sw_data_def_props
+            )
+            sub_elements.append(sub_elem)
+
+        struct_type = ar_element.ImplementationDataType(
+            struct_name,
+            category="STRUCTURE",
+            sub_elements=sub_elements
+        )
+        workspace.add_element("PlatformImplementationDataTypes", struct_type)
+        created_structs[struct_name] = struct_type
+        print(f"Created STRUCTURE type: {struct_name} with {len(sub_elements)} members")
+
+    return created_structs
 
 
 def convert_xlsx_to_arxml(excel_file, output_file):
     """
     主函数
-    """    
-    # 读取Excel数据
-    df = read_excel_data(excel_file)
+    """
+    # 读取Excel数据（主 sheet + 可选的 Struct sheet）
+    df, struct_df = read_excel_data(excel_file)
     if df is None:
         return
-    
+
     # 创建工作空间
     workspace = autosar.xml.Workspace()
     create_package_map(workspace)
     init_behavior_settings(workspace)
     create_platform_types(workspace)
+
+    # 解析并创建结构体类型（在接口创建之前）
+    struct_defs = parse_struct_definitions(struct_df)
+    struct_types = {}
+    if struct_defs:
+        validate_struct_definitions(struct_defs)
+        struct_types = create_struct_types(workspace, struct_defs)
     
     # 解析Excel数据
     interface_data = {}
@@ -375,7 +581,7 @@ def convert_xlsx_to_arxml(excel_file, output_file):
     print(f"Number of ports: {len(port_info)}")
     
     # 创建常量
-    create_constants(workspace, interface_data)
+    create_constants(workspace, interface_data, struct_defs)
     
     # 创建接口（根据类型创建SenderReceiver或ClientServer接口）
     created_interfaces = {}
@@ -385,14 +591,14 @@ def convert_xlsx_to_arxml(excel_file, output_file):
         if interface_type == 'clientserver':
             # 创建ClientServer接口，为每个element创建operation
             for elem in info['elements']:
-                interface = create_clientserver_interface(workspace, interface_name, elem['element_name'], elem['data_type'])
+                interface = create_clientserver_interface(workspace, interface_name, elem['element_name'], elem['data_type'], struct_types)
             created_interfaces[interface_name] = interface
             op_names = [e['element_name'] for e in info['elements']]
             print(f"Created ClientServer interface: {interface_name} with operations: {op_names}")
         else:
             # 创建SenderReceiver接口
             elem = info['elements'][0]
-            interface = create_senderreceiver_interface(workspace, interface_name, elem['element_name'], elem['data_type'])
+            interface = create_senderreceiver_interface(workspace, interface_name, elem['element_name'], elem['data_type'], struct_types)
             created_interfaces[interface_name] = interface
             print(f"Created SenderReceiver interface: {interface_name}")
     

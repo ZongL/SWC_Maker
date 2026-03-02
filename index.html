@@ -507,7 +507,7 @@
         <div class="features">
           <div class="feature-item">支持 SR/CS 接口</div>
           <div class="feature-item">自动生成 Runnable</div>
-          <div class="feature-item">支持导入MATLAB</div>
+          <div class="feature-item">支持 Struct 结构体</div>
           <div class="feature-item">符合 AUTOSAR 标准</div>
         </div>
       </div>
@@ -615,6 +615,59 @@
               <td>DoorMethod</td>
               <td><span class="badge-cs">ClientServer</span></td>
               <td>uint8</td>
+            </tr>
+            <tr>
+              <td>PSDContrl</td>
+              <td><span class="badge-require">require</span></td>
+              <td>DoorSts</td>
+              <td>DoorStsIf</td>
+              <td>DoorSts</td>
+              <td><span class="badge-sr">SenderReceiver</span></td>
+              <td>DoorStatus_T</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card preview-card">
+      <div class="preview-header">
+        <span class="preview-title">📋 Struct Sheet 示例（可选）</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th>StructName</th>
+              <th>MemberName</th>
+              <th>MemberType</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>DoorStatus_T</td>
+              <td>Position</td>
+              <td>uint8</td>
+            </tr>
+            <tr>
+              <td>DoorStatus_T</td>
+              <td>LockSts</td>
+              <td>boolean</td>
+            </tr>
+            <tr>
+              <td>DoorStatus_T</td>
+              <td>Speed</td>
+              <td>uint16</td>
+            </tr>
+            <tr>
+              <td>VehicleInfo_T</td>
+              <td>VehSpd</td>
+              <td>float32</td>
+            </tr>
+            <tr>
+              <td>VehicleInfo_T</td>
+              <td>DoorInfo</td>
+              <td>DoorStatus_T</td>
             </tr>
           </tbody>
         </table>
