@@ -57,15 +57,21 @@
               <SHORT-NAME>DoorMethod</SHORT-NAME>
               <ARGUMENTS>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>outvalue</SHORT-NAME>
+                  <SHORT-NAME>doorId</SHORT-NAME>
                   <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-                  <DIRECTION>OUT</DIRECTION>
+                  <DIRECTION>IN</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>invalue</SHORT-NAME>
-                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
+                  <SHORT-NAME>doorCmd</SHORT-NAME>
+                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/DoorStatus_T</TYPE-TREF>
                   <DIRECTION>IN</DIRECTION>
+                  <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
+                </ARGUMENT-DATA-PROTOTYPE>
+                <ARGUMENT-DATA-PROTOTYPE>
+                  <SHORT-NAME>result</SHORT-NAME>
+                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
+                  <DIRECTION>OUT</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
               </ARGUMENTS>
@@ -80,15 +86,15 @@
               <SHORT-NAME>SeatMethod</SHORT-NAME>
               <ARGUMENTS>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>outvalue</SHORT-NAME>
-                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-                  <DIRECTION>OUT</DIRECTION>
+                  <SHORT-NAME>seatPos</SHORT-NAME>
+                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint16</TYPE-TREF>
+                  <DIRECTION>IN</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>invalue</SHORT-NAME>
-                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-                  <DIRECTION>IN</DIRECTION>
+                  <SHORT-NAME>status</SHORT-NAME>
+                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/boolean</TYPE-TREF>
+                  <DIRECTION>OUT</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
               </ARGUMENTS>
@@ -103,15 +109,15 @@
               <SHORT-NAME>method1</SHORT-NAME>
               <ARGUMENTS>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>outvalue</SHORT-NAME>
+                  <SHORT-NAME>winId</SHORT-NAME>
                   <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-                  <DIRECTION>OUT</DIRECTION>
+                  <DIRECTION>IN</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>invalue</SHORT-NAME>
+                  <SHORT-NAME>result</SHORT-NAME>
                   <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-                  <DIRECTION>IN</DIRECTION>
+                  <DIRECTION>OUT</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
               </ARGUMENTS>
@@ -120,32 +126,21 @@
               <SHORT-NAME>method2</SHORT-NAME>
               <ARGUMENTS>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>outvalue</SHORT-NAME>
-                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
-                  <DIRECTION>OUT</DIRECTION>
+                  <SHORT-NAME>winPos</SHORT-NAME>
+                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint16</TYPE-TREF>
+                  <DIRECTION>IN</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>invalue</SHORT-NAME>
+                  <SHORT-NAME>winCmd</SHORT-NAME>
                   <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
                   <DIRECTION>IN</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
-              </ARGUMENTS>
-            </CLIENT-SERVER-OPERATION>
-            <CLIENT-SERVER-OPERATION>
-              <SHORT-NAME>method3</SHORT-NAME>
-              <ARGUMENTS>
                 <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>outvalue</SHORT-NAME>
-                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint16</TYPE-TREF>
+                  <SHORT-NAME>result</SHORT-NAME>
+                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint8</TYPE-TREF>
                   <DIRECTION>OUT</DIRECTION>
-                  <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
-                </ARGUMENT-DATA-PROTOTYPE>
-                <ARGUMENT-DATA-PROTOTYPE>
-                  <SHORT-NAME>invalue</SHORT-NAME>
-                  <TYPE-TREF DEST="IMPLEMENTATION-DATA-TYPE">/AUTOSAR_Platform/ImplementationDataTypes/uint16</TYPE-TREF>
-                  <DIRECTION>IN</DIRECTION>
                   <SERVER-ARGUMENT-IMPL-POLICY>USE-ARGUMENT-TYPE</SERVER-ARGUMENT-IMPL-POLICY>
                 </ARGUMENT-DATA-PROTOTYPE>
               </ARGUMENTS>
@@ -544,7 +539,7 @@
                   <OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method2</OPERATION-REF>
                 </SERVER-COM-SPEC>
                 <SERVER-COM-SPEC>
-                  <OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method3</OPERATION-REF>
+                  <OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method2</OPERATION-REF>
                 </SERVER-COM-SPEC>
               </PROVIDED-COM-SPECS>
               <PROVIDED-INTERFACE-TREF DEST="CLIENT-SERVER-INTERFACE">/PortInterfaces/CSwindowCmd</PROVIDED-INTERFACE-TREF>
@@ -608,7 +603,7 @@
                   </OPERATION-IREF>
                 </OPERATION-INVOKED-EVENT>
                 <OPERATION-INVOKED-EVENT>
-                  <SHORT-NAME>OIT_PSDContrl_SetWindowCmd_method2_SetWindowCmd_method2</SHORT-NAME>
+                  <SHORT-NAME>OIT_PSDContrl_SetWindowCmd_method2_SetWindowCmd_method2_0</SHORT-NAME>
                   <START-ON-EVENT-REF DEST="RUNNABLE-ENTITY">/ComponentTypes/PSDContrl/PSDContrl_InternalBehavior/PSDContrl_SetWindowCmd_method2</START-ON-EVENT-REF>
                   <OPERATION-IREF>
                     <CONTEXT-P-PORT-REF DEST="P-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/SetWindowCmd</CONTEXT-P-PORT-REF>
@@ -616,11 +611,11 @@
                   </OPERATION-IREF>
                 </OPERATION-INVOKED-EVENT>
                 <OPERATION-INVOKED-EVENT>
-                  <SHORT-NAME>OIT_PSDContrl_SetWindowCmd_method3_SetWindowCmd_method3</SHORT-NAME>
-                  <START-ON-EVENT-REF DEST="RUNNABLE-ENTITY">/ComponentTypes/PSDContrl/PSDContrl_InternalBehavior/PSDContrl_SetWindowCmd_method3</START-ON-EVENT-REF>
+                  <SHORT-NAME>OIT_PSDContrl_SetWindowCmd_method2_SetWindowCmd_method2_1</SHORT-NAME>
+                  <START-ON-EVENT-REF DEST="RUNNABLE-ENTITY">/ComponentTypes/PSDContrl/PSDContrl_InternalBehavior/PSDContrl_SetWindowCmd_method2</START-ON-EVENT-REF>
                   <OPERATION-IREF>
                     <CONTEXT-P-PORT-REF DEST="P-PORT-PROTOTYPE">/ComponentTypes/PSDContrl/SetWindowCmd</CONTEXT-P-PORT-REF>
-                    <TARGET-PROVIDED-OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method3</TARGET-PROVIDED-OPERATION-REF>
+                    <TARGET-PROVIDED-OPERATION-REF DEST="CLIENT-SERVER-OPERATION">/PortInterfaces/CSwindowCmd/method2</TARGET-PROVIDED-OPERATION-REF>
                   </OPERATION-IREF>
                 </OPERATION-INVOKED-EVENT>
               </EVENTS>
@@ -767,10 +762,10 @@
                   <SYMBOL>PSDContrl_SetWindowCmd_method2</SYMBOL>
                 </RUNNABLE-ENTITY>
                 <RUNNABLE-ENTITY>
-                  <SHORT-NAME>PSDContrl_SetWindowCmd_method3</SHORT-NAME>
+                  <SHORT-NAME>PSDContrl_SetWindowCmd_method2</SHORT-NAME>
                   <MINIMUM-START-INTERVAL>0</MINIMUM-START-INTERVAL>
                   <CAN-BE-INVOKED-CONCURRENTLY>false</CAN-BE-INVOKED-CONCURRENTLY>
-                  <SYMBOL>PSDContrl_SetWindowCmd_method3</SYMBOL>
+                  <SYMBOL>PSDContrl_SetWindowCmd_method2</SYMBOL>
                 </RUNNABLE-ENTITY>
               </RUNNABLES>
             </SWC-INTERNAL-BEHAVIOR>

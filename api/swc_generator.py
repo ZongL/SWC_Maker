@@ -163,10 +163,12 @@ def create_senderreceiver_interface(workspace: ar_workspace.Workspace, interface
     
     return port_interface
 
-def create_clientserver_interface(workspace: ar_workspace.Workspace, interface_name: str, operation_name: str, data_type: str, struct_types=None):
+def create_clientserver_interface(workspace: ar_workspace.Workspace, interface_name: str, operation_name: str, data_type: str, struct_types=None, csop_defs=None):
     """
     创建ClientServer接口
     如果接口已存在，则向其添加新的operation
+    当 csop_defs 中有 (interface_name, operation_name) 的自定义参数时使用自定义参数，
+    否则使用固定的 invalue/outvalue（向后兼容）
     """
     import autosar.xml.enumeration as ar_enum
 
@@ -180,29 +182,55 @@ def create_clientserver_interface(workspace: ar_workspace.Workspace, interface_n
         # 创建新的ClientServer接口
         portinterface = ar_element.ClientServerInterface(interface_name, is_service=False)
 
-    # 获取数据类型
-    impl_type = create_data_type(workspace, data_type, struct_types)
-    if impl_type is None:
-        print(f"Warning: Data type {data_type} not found, using uint8 as default")
-        impl_type = workspace.find_element("PlatformImplementationDataTypes", "uint8")
-    
     # 创建operation
     operation = portinterface.create_operation(operation_name)
-    
-    # 创建out参数
-    operation.create_out_argument("outvalue",
-                                 ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
-                                 type_ref=impl_type.ref())
-    
-    # 创建in参数
-    operation.create_in_argument("invalue",
-                                ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
-                                type_ref=impl_type.ref())
-    
+
+    # 查找是否有自定义参数定义
+    custom_args = None
+    if csop_defs:
+        custom_args = csop_defs.get((interface_name, operation_name))
+
+    if custom_args:
+        # 使用自定义参数
+        for arg in custom_args:
+            arg_type = create_data_type(workspace, arg['arg_type'], struct_types)
+            if arg_type is None:
+                print(f"Warning: Data type '{arg['arg_type']}' not found for argument '{arg['arg_name']}', using uint8")
+                arg_type = workspace.find_element("PlatformImplementationDataTypes", "uint8")
+
+            direction = arg['arg_direction']
+            if direction == 'IN':
+                operation.create_in_argument(arg['arg_name'],
+                                             ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
+                                             type_ref=arg_type.ref())
+            elif direction == 'OUT':
+                operation.create_out_argument(arg['arg_name'],
+                                              ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
+                                              type_ref=arg_type.ref())
+            elif direction == 'INOUT':
+                operation.create_inout_argument(arg['arg_name'],
+                                                ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
+                                                type_ref=arg_type.ref())
+            else:
+                print(f"Warning: Unknown argument direction '{direction}' for '{arg['arg_name']}', skipping")
+    else:
+        # 固定 invalue/outvalue（向后兼容）
+        impl_type = create_data_type(workspace, data_type, struct_types)
+        if impl_type is None:
+            print(f"Warning: Data type {data_type} not found, using uint8 as default")
+            impl_type = workspace.find_element("PlatformImplementationDataTypes", "uint8")
+
+        operation.create_out_argument("outvalue",
+                                     ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
+                                     type_ref=impl_type.ref())
+        operation.create_in_argument("invalue",
+                                    ar_enum.ServerArgImplPolicy.USE_ARGUMENT_TYPE,
+                                    type_ref=impl_type.ref())
+
     # 如果是新创建的接口，添加到工作空间
     if existing_interface is None:
         workspace.add_element("PortInterfaces", portinterface)
-    
+
     return portinterface
 
 
@@ -339,7 +367,7 @@ def create_constants(workspace: ar_workspace.Workspace, interface_data: dict, st
 def read_excel_data(excel_file: str):
     """
     读取Excel文件并解析接口信息
-    返回 (main_df, struct_df) 元组，struct_df 可能为 None
+    返回 (main_df, struct_df, csop_df) 元组，struct_df 和 csop_df 可能为 None
     """
     try:
         df = pd.read_excel(excel_file, sheet_name=0)
@@ -359,10 +387,19 @@ def read_excel_data(excel_file: str):
         except ValueError:
             print("No Struct sheet found, skipping struct type creation")
 
-        return df, struct_df
+        # 尝试读取 CSOperation sheet（可选）
+        csop_df = None
+        try:
+            csop_df = pd.read_excel(excel_file, sheet_name='CSOperation')
+            csop_df.columns = csop_df.columns.str.strip()
+            print(f"Found CSOperation sheet with {len(csop_df)} rows")
+        except ValueError:
+            print("No CSOperation sheet found, using default invalue/outvalue for CS operations")
+
+        return df, struct_df, csop_df
     except Exception as e:
         print(f"Error reading Excel file: {e}")
-        return None, None
+        return None, None, None
 
 
 PRIMITIVE_TYPES = {'uint8', 'uint16', 'uint32', 'float32', 'boolean'}
@@ -395,6 +432,38 @@ def parse_struct_definitions(struct_df):
         })
 
     return structs
+
+
+def parse_csoperation_definitions(csop_df):
+    """
+    解析 CSOperation sheet 为嵌套字典
+    返回: { (interface_name, operation_name): [ {arg_name, arg_direction, arg_type}, ... ] }
+    csop_df 为 None 时返回空字典
+    """
+    if csop_df is None or csop_df.empty:
+        return {}
+
+    csop_defs = {}
+    for _, row in csop_df.iterrows():
+        if pd.isna(row.get('InterfaceName')) or pd.isna(row.get('OperationName')) or pd.isna(row.get('ArgumentName')):
+            continue
+
+        iface = str(row['InterfaceName']).strip()
+        op = str(row['OperationName']).strip()
+        arg_name = str(row['ArgumentName']).strip()
+        arg_dir = str(row['ArgumentDirection']).strip().upper()
+        arg_type = str(row['ArgumentType']).strip()
+
+        key = (iface, op)
+        if key not in csop_defs:
+            csop_defs[key] = []
+        csop_defs[key].append({
+            'arg_name': arg_name,
+            'arg_direction': arg_dir,
+            'arg_type': arg_type
+        })
+
+    return csop_defs
 
 
 def validate_struct_definitions(struct_defs):
@@ -517,8 +586,8 @@ def convert_xlsx_to_arxml(excel_file, output_file):
     """
     主函数
     """
-    # 读取Excel数据（主 sheet + 可选的 Struct sheet）
-    df, struct_df = read_excel_data(excel_file)
+    # 读取Excel数据（主 sheet + 可选的 Struct sheet + 可选的 CSOperation sheet）
+    df, struct_df, csop_df = read_excel_data(excel_file)
     if df is None:
         return
 
@@ -534,6 +603,9 @@ def convert_xlsx_to_arxml(excel_file, output_file):
     if struct_defs:
         validate_struct_definitions(struct_defs)
         struct_types = create_struct_types(workspace, struct_defs)
+
+    # 解析 CSOperation 自定义参数
+    csop_defs = parse_csoperation_definitions(csop_df)
     
     # 解析Excel数据
     interface_data = {}
@@ -591,7 +663,7 @@ def convert_xlsx_to_arxml(excel_file, output_file):
         if interface_type == 'clientserver':
             # 创建ClientServer接口，为每个element创建operation
             for elem in info['elements']:
-                interface = create_clientserver_interface(workspace, interface_name, elem['element_name'], elem['data_type'], struct_types)
+                interface = create_clientserver_interface(workspace, interface_name, elem['element_name'], elem['data_type'], struct_types, csop_defs)
             created_interfaces[interface_name] = interface
             op_names = [e['element_name'] for e in info['elements']]
             print(f"Created ClientServer interface: {interface_name} with operations: {op_names}")

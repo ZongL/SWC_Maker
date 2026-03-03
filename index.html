@@ -674,6 +674,62 @@
       </div>
     </div>
 
+    <div class="card preview-card">
+      <div class="preview-header">
+        <span class="preview-title">📋 CSOperation Sheet 示例（可选 - 自定义CS接口Operation参数）</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th>InterfaceName</th>
+              <th>OperationName</th>
+              <th>ArgumentName</th>
+              <th>ArgumentDirection</th>
+              <th>ArgumentType</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>SetDoorCmd</td>
+              <td>DoorMethod</td>
+              <td>doorId</td>
+              <td><span class="badge-provide">IN</span></td>
+              <td>uint8</td>
+            </tr>
+            <tr>
+              <td>SetDoorCmd</td>
+              <td>DoorMethod</td>
+              <td>doorCmd</td>
+              <td><span class="badge-provide">IN</span></td>
+              <td>DoorStatus_T</td>
+            </tr>
+            <tr>
+              <td>SetDoorCmd</td>
+              <td>DoorMethod</td>
+              <td>result</td>
+              <td><span class="badge-require">OUT</span></td>
+              <td>uint8</td>
+            </tr>
+            <tr>
+              <td>SetSeatCmd</td>
+              <td>SeatMethod</td>
+              <td>seatPos</td>
+              <td><span class="badge-provide">IN</span></td>
+              <td>uint16</td>
+            </tr>
+            <tr>
+              <td>SetSeatCmd</td>
+              <td>SeatMethod</td>
+              <td>status</td>
+              <td><span class="badge-require">OUT</span></td>
+              <td>boolean</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="card tips-card">
       <div class="tips-header">
         <span class="tips-icon">💡</span>
