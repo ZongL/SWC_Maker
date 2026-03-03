@@ -306,6 +306,43 @@
       animation: spin .6s linear infinite;
       margin-right: 8px;
     }
+    /* Sheet 标签页样式 */
+    .sheet-tabs {
+      display: flex;
+      border-bottom: 2px solid #e4e7ed;
+      margin-bottom: 16px;
+      gap: 4px;
+    }
+    .sheet-tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #666;
+      background: #f5f7fa;
+      border: 1px solid #e4e7ed;
+      border-bottom: none;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.2s;
+      position: relative;
+      top: 2px;
+    }
+    .sheet-tab:hover {
+      background: #e6f7ff;
+      color: #409eff;
+    }
+    .sheet-tab.active {
+      background: #fff;
+      color: #409eff;
+      border-color: #409eff;
+      border-bottom: 2px solid #fff;
+      font-weight: 500;
+    }
+    .sheet-content {
+      display: none;
+    }
+    .sheet-content.active {
+      display: block;
+    }
     .preview-card {
       padding: 24px;
       text-align: left;
@@ -539,194 +576,219 @@
         <span class="preview-title">📋 Excel 模板示例</span>
         <a href="myswcautosar.xlsx" download="myswcautosar.xlsx" class="preview-badge" style="text-decoration: none;">Excel模板下载</a>
       </div>
-      <div class="table-wrapper">
-        <table class="preview-table">
-          <thead>
-            <tr>
-              <th>SWCName</th>
-              <th>Direction</th>
-              <th>PortName</th>
-              <th>InterfaceName</th>
-              <th>ElementName</th>
-              <th>InterfaceType</th>
-              <th>DataType</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-provide">provide</span></td>
-              <td>LockCmd</td>
-              <td>LockCmd</td>
-              <td>LockCmd</td>
-              <td><span class="badge-sr">SenderReceiver</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-provide">provide</span></td>
-              <td>LockReq</td>
-              <td>LockReq</td>
-              <td>LockReq</td>
-              <td><span class="badge-sr">SenderReceiver</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-require">require</span></td>
-              <td>VehSpd</td>
-              <td>VehSpd</td>
-              <td>VehSpd</td>
-              <td><span class="badge-sr">SenderReceiver</span></td>
-              <td>uint16</td>
-            </tr>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-require">require</span></td>
-              <td>VehSpdVld</td>
-              <td>VehSpdVld</td>
-              <td>VehSpdVld</td>
-              <td><span class="badge-sr">SenderReceiver</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-require">require</span></td>
-              <td>FrLeDoorSts</td>
-              <td>FrLeDoorSts</td>
-              <td>FrLeDoorSts</td>
-              <td><span class="badge-sr">SenderReceiver</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-require">require</span></td>
-              <td>ReLeDoorSts</td>
-              <td>ReLeDoorSts</td>
-              <td>ReLeDoorSts</td>
-              <td><span class="badge-sr">SenderReceiver</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-provide">provide</span></td>
-              <td>SetDoorCmd</td>
-              <td>SetDoorCmd</td>
-              <td>DoorMethod</td>
-              <td><span class="badge-cs">ClientServer</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>PSDContrl</td>
-              <td><span class="badge-require">require</span></td>
-              <td>DoorSts</td>
-              <td>DoorStsIf</td>
-              <td>DoorSts</td>
-              <td><span class="badge-sr">SenderReceiver</span></td>
-              <td>DoorStatus_T</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <div class="card preview-card">
-      <div class="preview-header">
-        <span class="preview-title">📋 Struct Sheet 示例（可选）</span>
+      <!-- Sheet 标签页 -->
+      <div class="sheet-tabs">
+        <div class="sheet-tab active" data-sheet="main">Main Sheet</div>
+        <div class="sheet-tab" data-sheet="struct">Struct Sheet</div>
+        <div class="sheet-tab" data-sheet="csoperation">CSOperation Sheet</div>
       </div>
-      <div class="table-wrapper">
-        <table class="preview-table">
-          <thead>
-            <tr>
-              <th>StructName</th>
-              <th>MemberName</th>
-              <th>MemberType</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>DoorStatus_T</td>
-              <td>Position</td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>DoorStatus_T</td>
-              <td>LockSts</td>
-              <td>boolean</td>
-            </tr>
-            <tr>
-              <td>DoorStatus_T</td>
-              <td>Speed</td>
-              <td>uint16</td>
-            </tr>
-            <tr>
-              <td>VehicleInfo_T</td>
-              <td>VehSpd</td>
-              <td>float32</td>
-            </tr>
-            <tr>
-              <td>VehicleInfo_T</td>
-              <td>DoorInfo</td>
-              <td>DoorStatus_T</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-    <div class="card preview-card">
-      <div class="preview-header">
-        <span class="preview-title">📋 CSOperation Sheet 示例（可选 - 自定义CS接口Operation参数）</span>
+      <!-- Main Sheet -->
+      <div class="sheet-content active" data-sheet="main">
+        <div class="table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>SWCName</th>
+                <th>Direction</th>
+                <th>PortName</th>
+                <th>InterfaceName</th>
+                <th>ElementName</th>
+                <th>InterfaceType</th>
+                <th>DataType</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-provide">provide</span></td>
+                <td>LockCmd</td>
+                <td>LockCmd</td>
+                <td>LockCmd</td>
+                <td><span class="badge-sr">SenderReceiver</span></td>
+                <td>uint8</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-provide">provide</span></td>
+                <td>LockReq</td>
+                <td>LockReq</td>
+                <td>LockReq</td>
+                <td><span class="badge-sr">SenderReceiver</span></td>
+                <td>uint8</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-require">require</span></td>
+                <td>VehSpd</td>
+                <td>VehSpd</td>
+                <td>VehSpd</td>
+                <td><span class="badge-sr">SenderReceiver</span></td>
+                <td>float32</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-require">require</span></td>
+                <td>FrLeDoorSts</td>
+                <td>FrLeDoorSts</td>
+                <td>FrLeDoorSts</td>
+                <td><span class="badge-sr">SenderReceiver</span></td>
+                <td>uint8</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-require">require</span></td>
+                <td>ReLeDoorSts</td>
+                <td>ReLeDoorSts</td>
+                <td>ReLeDoorSts</td>
+                <td><span class="badge-sr">SenderReceiver</span></td>
+                <td>uint8</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-provide">provide</span></td>
+                <td>SetDoorCmd</td>
+                <td>SetDoorCmd</td>
+                <td>DoorMethod</td>
+                <td><span class="badge-cs">ClientServer</span></td>
+                <td>NULL</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-provide">provide</span></td>
+                <td>SetSeatCmd</td>
+                <td>SetSeatCmd</td>
+                <td>SetSeatCmd</td>
+                <td><span class="badge-cs">ClientServer</span></td>
+                <td>NULL</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-provide">provide</span></td>
+                <td>SetWindowCmd</td>
+                <td>CSwindowCmd</td>
+                <td>method1</td>
+                <td><span class="badge-cs">ClientServer</span></td>
+                <td>NULL</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-provide">provide</span></td>
+                <td>SetWindowCmd</td>
+                <td>CSwindowCmd</td>
+                <td>method2</td>
+                <td><span class="badge-cs">ClientServer</span></td>
+                <td>NULL</td>
+              </tr>
+              <tr>
+                <td>PSDContrl</td>
+                <td><span class="badge-require">require</span></td>
+                <td>DoorSts</td>
+                <td>DoorStsIf</td>
+                <td>DoorSts</td>
+                <td><span class="badge-sr">SenderReceiver</span></td>
+                <td>DoorStatus_T</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="table-wrapper">
-        <table class="preview-table">
-          <thead>
-            <tr>
-              <th>InterfaceName</th>
-              <th>OperationName</th>
-              <th>ArgumentName</th>
-              <th>ArgumentDirection</th>
-              <th>ArgumentType</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>SetDoorCmd</td>
-              <td>DoorMethod</td>
-              <td>doorId</td>
-              <td><span class="badge-provide">IN</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>SetDoorCmd</td>
-              <td>DoorMethod</td>
-              <td>doorCmd</td>
-              <td><span class="badge-provide">IN</span></td>
-              <td>DoorStatus_T</td>
-            </tr>
-            <tr>
-              <td>SetDoorCmd</td>
-              <td>DoorMethod</td>
-              <td>result</td>
-              <td><span class="badge-require">OUT</span></td>
-              <td>uint8</td>
-            </tr>
-            <tr>
-              <td>SetSeatCmd</td>
-              <td>SeatMethod</td>
-              <td>seatPos</td>
-              <td><span class="badge-provide">IN</span></td>
-              <td>uint16</td>
-            </tr>
-            <tr>
-              <td>SetSeatCmd</td>
-              <td>SeatMethod</td>
-              <td>status</td>
-              <td><span class="badge-require">OUT</span></td>
-              <td>boolean</td>
-            </tr>
-          </tbody>
-        </table>
+
+      <!-- Struct Sheet -->
+      <div class="sheet-content" data-sheet="struct">
+        <div class="table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>StructName</th>
+                <th>MemberName</th>
+                <th>MemberType</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>DoorStatus_T</td>
+                <td>Position</td>
+                <td>uint8</td>
+              </tr>
+              <tr>
+                <td>DoorStatus_T</td>
+                <td>LockSts</td>
+                <td>boolean</td>
+              </tr>
+              <tr>
+                <td>DoorStatus_T</td>
+                <td>Speed</td>
+                <td>uint16</td>
+              </tr>
+              <tr>
+                <td>VehicleInfo_T</td>
+                <td>VehSpd</td>
+                <td>float32</td>
+              </tr>
+              <tr>
+                <td>VehicleInfo_T</td>
+                <td>DoorInfo</td>
+                <td>DoorStatus_T</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CSOperation Sheet -->
+      <div class="sheet-content" data-sheet="csoperation">
+        <div class="table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>InterfaceName</th>
+                <th>OperationName</th>
+                <th>ArgumentName</th>
+                <th>ArgumentDirection</th>
+                <th>ArgumentType</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>SetDoorCmd</td>
+                <td>DoorMethod</td>
+                <td>doorId</td>
+                <td><span class="badge-provide">IN</span></td>
+                <td>uint8</td>
+              </tr>
+              <tr>
+                <td>SetDoorCmd</td>
+                <td>DoorMethod</td>
+                <td>doorCmd</td>
+                <td><span class="badge-provide">IN</span></td>
+                <td>DoorStatus_T</td>
+              </tr>
+              <tr>
+                <td>SetDoorCmd</td>
+                <td>DoorMethod</td>
+                <td>result</td>
+                <td><span class="badge-require">OUT</span></td>
+                <td>uint8</td>
+              </tr>
+              <tr>
+                <td>SetSeatCmd</td>
+                <td>SeatMethod</td>
+                <td>seatPos</td>
+                <td><span class="badge-provide">IN</span></td>
+                <td>uint16</td>
+              </tr>
+              <tr>
+                <td>SetSeatCmd</td>
+                <td>SeatMethod</td>
+                <td>status</td>
+                <td><span class="badge-require">OUT</span></td>
+                <td>boolean</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1038,12 +1100,31 @@ ar = arxml.importer(<span class="code-string">'swc_result.arxml'</span>);</code>
     // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', function() {
       loadActivationInfo();
-      
+
       // 激活码输入框回车事件
       document.getElementById('activationCodeInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
           verifyActivationCode();
         }
+      });
+
+      // Sheet 标签页切换
+      document.querySelectorAll('.sheet-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          const sheetName = this.dataset.sheet;
+
+          // 切换标签页激活状态
+          document.querySelectorAll('.sheet-tab').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+
+          // 切换内容显示
+          document.querySelectorAll('.sheet-content').forEach(content => {
+            content.classList.remove('active');
+            if (content.dataset.sheet === sheetName) {
+              content.classList.add('active');
+            }
+          });
+        });
       });
     });
   </script>
